@@ -1,6 +1,5 @@
 group project.hasProperty("build_name") ? project.build_name : 'build_name-property-not-defined'
 version project.hasProperty("build_number") ? project.build_number: 'build_number-property-not-defined'
-
 buildscript {
   repositories {
     mavenCentral()
@@ -9,32 +8,26 @@ buildscript {
     classpath "org.jfrog.buildinfo:build-info-extractor-gradle:latest.release"
   }
 }
-
 apply plugin: 'java'
 apply plugin: 'java-library'
 apply plugin: 'application'
 apply plugin: 'maven-publish'
-
 mainClassName = 'hello.HelloWorld'
-
 repositories {
   maven {
     url "https://hts2.jfrog.io/artifactory/test-gradle-release"
   }
 }
-
 dependencies {
   // implementation 'com.azure.cosmos.spark:azure-cosmos-spark_3-1_2-12:4.6.1'
   implementation 'com.azure.cosmos.spark:azure-cosmos-spark_3-1_2-12:4.11.2'
 }
-
 task copyDependencies(type: Copy) {
   from configurations.default {
     canBeResolved = true
   }
   into 'dependencies'
 }
-
 artifactory {
   contextUrl = 'https://hts2.jfrog.io/artifactory/'
   publish {
@@ -49,6 +42,3 @@ artifactory {
     }
   }
 }
-
-// optionally disable all artifactory publishing the gradle artifacts are incidental to the databricks project
-//artifactoryPublish.onlyIf { false }
