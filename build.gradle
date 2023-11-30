@@ -1,33 +1,54 @@
-/*
- * Copyright (C) 2013 JFrog Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+group project.hasProperty("build_name") ? project.build_name : 'build_name-property-not-defined'
+version project.hasProperty("build_number") ? project.build_number: 'build_number-property-not-defined'
 
 buildscript {
   repositories {
-    jcenter()
+    mavenCentral()
+  }
+  dependencies {
+    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:latest.release"
   }
 }
 
-allprojects {
-  apply plugin: 'java'
-  apply plugin: 'maven'
+apply plugin: 'java'
+apply plugin: 'java-library'
+apply plugin: 'application'
+apply plugin: 'maven-publish'
 
-  group = 'org.jfrog.example.gradle'
-  version = '1.0'
-  status = 'integration'
+mainClassName = 'hello.HelloWorld'
+
+repositories {
+  maven {
+    url "https://hts2.jfrog.io/artifactory/test-gradle-release"
+  }
 }
 
-// Setting this property to true will make the artifactoryPublish task
-// skip this module (in our case, the root module):
+dependencies {
+  // implementation 'com.azure.cosmos.spark:azure-cosmos-spark_3-1_2-12:4.6.1'
+  implementation 'com.azure.cosmos.spark:azure-cosmos-spark_3-1_2-12:4.11.2'
+}
+
+task copyDependencies(type: Copy) {
+  from configurations.default {
+    canBeResolved = true
+  }
+  into 'dependencies'
+}
+
+artifactory {
+  contextUrl = 'https://hts2.jfrog.io/artifactory/'
+  publish {
+    repository {
+      repoKey = 'test-gradle-release' // The Artifactory repository key to publish to
+    defaults {
+      publications('mavenJava')
+      publishArtifacts = false
+      publishBuildInfo = false
+      publishPom = false
+      publishIvy = false
+    }
+  }
+}
+
+// optionally disable all artifactory publishing the gradle artifacts are incidental to the databricks project
+//artifactoryPublish.onlyIf { false }
